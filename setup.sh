@@ -16,6 +16,14 @@ source $HOME/.bashrc
 echo
 
 echo "-----Installing bento components-----"
+# Add PostgreSQL 16 repo
+sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
+wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -
+apt update
+
+# Install all dependencies properly
+apt install -y redis postgresql-16 adduser libfontconfig1 musl wget apt-transport-https ca-certificates gnupg lsb-release
+
 apt install -y redis postgresql-16 adduser libfontconfig1 musl
 
 wget https://dl.min.io/server/minio/release/linux-amd64/archive/minio_20250613113347.0.0_amd64.deb -O minio.deb
@@ -23,6 +31,7 @@ dpkg -i minio.deb
 
 curl -L "https://zzno.de/boundless/grafana-enterprise_11.0.0_amd64.deb" -o grafana-enterprise_11.0.0_amd64.deb
 dpkg -i grafana-enterprise_11.0.0_amd64.deb
+apt --fix-broken install -y
 echo
 
 echo "-----Downloading prover binaries-----"
@@ -43,7 +52,7 @@ chmod +x /app/rest_api
 chmod +x /app/stark_verify
 
 echo "-----Installing CLI tools-----"
-git clone https://github.com/rpslzero/boundless.git
+git clone https://github.com/fadhilahkholiq/boundless.git
 cd boundless
 git checkout release-0.13
 git submodule update --init --recursive
