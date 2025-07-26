@@ -55,7 +55,6 @@ git clone https://github.com/Stevesv1/boundless.git
 cd ~/boundless
 git submodule update --init --recursive
 cargo install --locked --git https://github.com/risc0/risc0 bento-client --bin bento_cli
-cd boundless
 cargo install --path crates/boundless-cli --locked boundless-cli
 echo
 
