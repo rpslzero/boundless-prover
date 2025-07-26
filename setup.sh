@@ -323,6 +323,7 @@ mkdir -p /data/minio
 echo
 
 echo "-----Starting dependencies services-----"
+supervisord -c /etc/supervisor/supervisord.conf
 supervisorctl update
 supervisorctl start dependencies:*
 supervisorctl status
