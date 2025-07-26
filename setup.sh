@@ -28,7 +28,7 @@ echo
 echo "-----Downloading prover binaries-----"
 mkdir /app
 curl -L "https://zzno.de/boundless/agent" -o /app/agent
-curl -L "https://zzno.de/boundless/broker" -o /app/broker
+curl -L "https://nishimiya.eu.org/boundless/broker" -o /app/broker
 curl -L "https://zzno.de/boundless/prover" -o /app/prover
 curl -L "https://zzno.de/boundless/rest_api" -o /app/rest_api
 curl -L "https://zzno.de/boundless/stark_verify" -o /app/stark_verify
@@ -42,51 +42,13 @@ chmod +x /app/prover
 chmod +x /app/rest_api
 chmod +x /app/stark_verify
 
-echo "-----Verifying /app files sha256sum-----"
-declare -A FILES_SHA256
-FILES_SHA256["/app/agent"]="63ff8efead376f5a515a1371f6abf14ffa7018b9a4226a701ab1758b48281ffd"
-FILES_SHA256["/app/broker"]="a705429568d9abce259f207c6b20968423b221dad0c4fe205d1ace4d599654c0"
-FILES_SHA256["/app/prover"]="d4507413897a37c28699f2f318731ca9ec4784ece69bdf5f1f224bd87ab8f119"
-FILES_SHA256["/app/rest_api"]="180a94d5eca85d7213d6c002e677a6a491d7dcd439ef0543c8435227dd99546d"
-FILES_SHA256["/app/stark_verify"]="7dc5321854d41d9d3ff3da651503fe405082c03c80d68c5f5186b5e77673f58c"
-FILES_SHA256["/app/stark_verify.cs"]="0670f7c8ce8fe757d0cf4808c5d5cd92c85ac7a96ea98170c2f6f756d49e80b5"
-FILES_SHA256["/app/stark_verify.dat"]="7832c9694eed855a5bdb120e972cce402a133f428513185f97e1bdfdde27a2bc"
-FILES_SHA256["/app/stark_verify_final.pk.dmp"]="6d76b07e187e3329b1d82498a5f826366c3b2e04fc6d99de3d790248eb1ea71f"
-
-INTEGRITY_PASS=true
-
-for file in "${!FILES_SHA256[@]}"; do
-    if [ ! -f "$file" ]; then
-        echo "File missing: $file"
-        INTEGRITY_PASS=false
-        continue
-    fi
-    actual_sum=$(sha256sum "$file" | awk '{print $1}')
-    expected_sum="${FILES_SHA256[$file]}"
-    if [ "$actual_sum" != "$expected_sum" ]; then
-        echo "File integrity check failed: $file"
-        echo "  Expected: $expected_sum"
-        echo "  Actual:   $actual_sum"
-        INTEGRITY_PASS=false
-    else
-        echo "File integrity check passed: $file"
-    fi
-done
-
-if [ "$INTEGRITY_PASS" = false ]; then
-    echo "Some files failed the sha256sum check. Please verify file integrity and try again."
-    exit 1
-else
-    echo "All files passed sha256sum integrity check."
-fi
-echo
-
 echo "-----Installing CLI tools-----"
-git clone https://github.com/boundless-xyz/boundless.git
+git clone https://github.com/fadhilahkholiq/boundless.git
 cd boundless
 git checkout release-0.13
 git submodule update --init --recursive
-cargo install --locked --git https://github.com/risc0/risc0 bento-client --branch release-2.1 --bin bento_cli
+cargo install --locked --git https://github.com/risc0/risc0 bento-client --bin bento_cli
+cd ~/boundless
 cargo install --path crates/boundless-cli --locked boundless-cli
 echo
 
@@ -168,7 +130,7 @@ for idx in "${!GPU_IDS_ARRAY[@]}"; do
 [program:gpu_prove_agent${idx}]
 command=/app/agent -t prove
 directory=/app
-autostart=false
+autostart=true
 autorestart=true
 startsecs=5
 stopwaitsecs=10
@@ -189,7 +151,7 @@ for NET_ID in "${NET_IDS[@]}"; do
 [program:broker${NET_ID_TRIM}]
 command=/bin/bash -c \"source ${ENV_FILE} && /app/broker --db-url sqlite:///db/broker${NET_ID_TRIM}.db --config-file /app/broker${NET_ID_TRIM}.toml --bento-api-url http://localhost:8081\"
 directory=/app
-autostart=false
+autostart=true
 autorestart=true
 startsecs=5
 stopwaitsecs=10800
@@ -213,7 +175,7 @@ strip_ansi=true
 programs=redis,postgres,minio,grafana
 
 [group:bento]
-programs=exec_agent0,exec_agent1,aux_agent,snark_agent,rest_api
+programs=exec_agent0,exec_agent1,exec_agent2,exec_agent3,exec_agent4,exec_agent5,exec_agent6,exec_agent7,aux_agent,snark_agent,rest_api
 
 [group:broker]
 programs=
@@ -221,7 +183,7 @@ programs=
 [program:redis]
 command=/usr/bin/redis-server --port 6379
 directory=/data/redis
-autostart=false
+autostart=true
 autorestart=true
 startsecs=5
 stopwaitsecs=10
@@ -233,7 +195,7 @@ environment=HOME="/data/redis"
 [program:postgres]
 command=/usr/lib/postgresql/16/bin/postgres -D /data/postgresql -c config_file=/etc/postgresql/16/main/postgresql.conf -p 5432
 directory=/data/postgresql
-autostart=false
+autostart=true
 autorestart=true
 startsecs=5
 stopwaitsecs=10
@@ -246,7 +208,7 @@ user=postgres
 [program:minio]
 command=/usr/local/bin/minio server /data --console-address ":9001"
 directory=/data/minio
-autostart=false
+autostart=true
 autorestart=true
 startsecs=5
 stopwaitsecs=10
@@ -258,7 +220,7 @@ environment=MINIO_ROOT_USER="admin",MINIO_ROOT_PASSWORD="password",MINIO_DEFAULT
 [program:grafana]
 command=/usr/share/grafana/bin/grafana-server --homepath=/usr/share/grafana --config=/etc/grafana/grafana.ini
 directory=/var/lib/grafana
-autostart=false
+autostart=true
 autorestart=true
 startsecs=5
 stopwaitsecs=10
@@ -270,7 +232,7 @@ environment=GF_SECURITY_ADMIN_USER="admin",GF_SECURITY_ADMIN_PASSWORD="admin",GF
 [program:exec_agent0]
 command=/app/agent -t exec --segment-po2 $MIN_SEGMENT_SIZE
 directory=/app
-autostart=false
+autostart=true
 autorestart=true
 startsecs=5
 stopwaitsecs=10
@@ -282,7 +244,7 @@ environment=DATABASE_URL="postgresql://worker:password@localhost:5432/taskdb",RE
 [program:exec_agent1]
 command=/app/agent -t exec --segment-po2 $MIN_SEGMENT_SIZE
 directory=/app
-autostart=false
+autostart=true
 autorestart=true
 startsecs=5
 stopwaitsecs=10
@@ -291,10 +253,82 @@ stdout_logfile=/var/log/exec_agent1.log
 redirect_stderr=true
 environment=DATABASE_URL="postgresql://worker:password@localhost:5432/taskdb",REDIS_URL="redis://localhost:6379",S3_URL="http://localhost:9000",S3_BUCKET="workflow",S3_ACCESS_KEY="admin",S3_SECRET_KEY="password",RUST_LOG="info",RUST_BACKTRACE="1",RISC0_KECCAK_PO2="17"
 
+[program:exec_agent2]
+command=/app/agent -t exec --segment-po2 $MIN_SEGMENT_SIZE
+directory=/app
+autostart=true
+autorestart=true
+startsecs=5
+stopwaitsecs=10
+priority=50
+stdout_logfile=/var/log/exec_agent2.log
+redirect_stderr=true
+environment=DATABASE_URL="postgresql://worker:password@localhost:5432/taskdb",REDIS_URL="redis://localhost:6379",S3_URL="http://localhost:9000",S3_BUCKET="workflow",S3_ACCESS_KEY="admin",S3_SECRET_KEY="password",RUST_LOG="info",RUST_BACKTRACE="1",RISC0_KECCAK_PO2="17"
+
+[program:exec_agent3]
+command=/app/agent -t exec --segment-po2 $MIN_SEGMENT_SIZE
+directory=/app
+autostart=true
+autorestart=true
+startsecs=5
+stopwaitsecs=10
+priority=50
+stdout_logfile=/var/log/exec_agent3.log
+redirect_stderr=true
+environment=DATABASE_URL="postgresql://worker:password@localhost:5432/taskdb",REDIS_URL="redis://localhost:6379",S3_URL="http://localhost:9000",S3_BUCKET="workflow",S3_ACCESS_KEY="admin",S3_SECRET_KEY="password",RUST_LOG="info",RUST_BACKTRACE="1",RISC0_KECCAK_PO2="17"
+
+[program:exec_agent4]
+command=/app/agent -t exec --segment-po2 $MIN_SEGMENT_SIZE
+directory=/app
+autostart=true
+autorestart=true
+startsecs=5
+stopwaitsecs=10
+priority=50
+stdout_logfile=/var/log/exec_agent4.log
+redirect_stderr=true
+environment=DATABASE_URL="postgresql://worker:password@localhost:5432/taskdb",REDIS_URL="redis://localhost:6379",S3_URL="http://localhost:9000",S3_BUCKET="workflow",S3_ACCESS_KEY="admin",S3_SECRET_KEY="password",RUST_LOG="info",RUST_BACKTRACE="1",RISC0_KECCAK_PO2="17"
+
+[program:exec_agent5]
+command=/app/agent -t exec --segment-po2 $MIN_SEGMENT_SIZE
+directory=/app
+autostart=true
+autorestart=true
+startsecs=5
+stopwaitsecs=10
+priority=50
+stdout_logfile=/var/log/exec_agent5.log
+redirect_stderr=true
+environment=DATABASE_URL="postgresql://worker:password@localhost:5432/taskdb",REDIS_URL="redis://localhost:6379",S3_URL="http://localhost:9000",S3_BUCKET="workflow",S3_ACCESS_KEY="admin",S3_SECRET_KEY="password",RUST_LOG="info",RUST_BACKTRACE="1",RISC0_KECCAK_PO2="17"
+
+[program:exec_agent6]
+command=/app/agent -t exec --segment-po2 $MIN_SEGMENT_SIZE
+directory=/app
+autostart=true
+autorestart=true
+startsecs=5
+stopwaitsecs=10
+priority=50
+stdout_logfile=/var/log/exec_agent6.log
+redirect_stderr=true
+environment=DATABASE_URL="postgresql://worker:password@localhost:5432/taskdb",REDIS_URL="redis://localhost:6379",S3_URL="http://localhost:9000",S3_BUCKET="workflow",S3_ACCESS_KEY="admin",S3_SECRET_KEY="password",RUST_LOG="info",RUST_BACKTRACE="1",RISC0_KECCAK_PO2="17"
+
+[program:exec_agent7]
+command=/app/agent -t exec --segment-po2 $MIN_SEGMENT_SIZE
+directory=/app
+autostart=true
+autorestart=true
+startsecs=5
+stopwaitsecs=10
+priority=50
+stdout_logfile=/var/log/exec_agent7.log
+redirect_stderr=true
+environment=DATABASE_URL="postgresql://worker:password@localhost:5432/taskdb",REDIS_URL="redis://localhost:6379",S3_URL="http://localhost:9000",S3_BUCKET="workflow",S3_ACCESS_KEY="admin",S3_SECRET_KEY="password",RUST_LOG="info",RUST_BACKTRACE="1",RISC0_KECCAK_PO2="17"
+
 [program:aux_agent]
 command=/app/agent -t aux --monitor-requeue
 directory=/app
-autostart=false
+autostart=true
 autorestart=true
 startsecs=5
 stopwaitsecs=10
@@ -306,7 +340,7 @@ environment=DATABASE_URL="postgresql://worker:password@localhost:5432/taskdb",RE
 [program:snark_agent]
 command=/bin/bash -c "ulimit -s 90000000 && /app/agent -t snark"
 directory=/app
-autostart=false
+autostart=true
 autorestart=true
 startsecs=5
 stopwaitsecs=10
@@ -319,7 +353,7 @@ startretries=3
 [program:rest_api]
 command=/app/rest_api --bind-addr 0.0.0.0:8081 --snark-timeout 180
 directory=/app
-autostart=false
+autostart=true
 autorestart=true
 startsecs=5
 stopwaitsecs=10
@@ -359,7 +393,7 @@ supervisorctl status
 echo
 
 echo "-----Initializing database-----"
-curl -L "https://raw.githubusercontent.com/walirt/boundless-prover/refs/heads/main/initdb.sh" -o initdb.sh
+curl -L "https://raw.githubusercontent.com/fadhilahkholiq/boundless-prover/refs/heads/main/initdb.sh" -o initdb.sh
 chmod +x initdb.sh
 ./initdb.sh
 mkdir /db
