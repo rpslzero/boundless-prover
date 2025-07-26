@@ -52,11 +52,10 @@ chmod +x /app/stark_verify
 
 echo "-----Installing CLI tools-----"
 git clone https://github.com/fadhilahkholiq/boundless.git
-cd boundless
-git checkout release-0.13
+cd ~/boundless
 git submodule update --init --recursive
 cargo install --locked --git https://github.com/risc0/risc0 bento-client --bin bento_cli
-cd boundless
+cd ~/boundless
 cargo install --path crates/boundless-cli --locked boundless-cli
 echo
 
