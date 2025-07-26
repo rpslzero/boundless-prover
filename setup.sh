@@ -24,8 +24,6 @@ apt update
 # Install all dependencies properly
 apt install -y redis postgresql-16 adduser libfontconfig1 musl wget apt-transport-https ca-certificates gnupg lsb-release
 
-apt install -y redis postgresql-16 adduser libfontconfig1 musl
-
 wget https://dl.min.io/server/minio/release/linux-amd64/archive/minio_20250613113347.0.0_amd64.deb -O minio.deb
 dpkg -i minio.deb
 
