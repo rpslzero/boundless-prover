@@ -33,26 +33,10 @@ dpkg -i grafana-enterprise_11.0.0_amd64.deb
 apt --fix-broken install -y
 echo
 
-echo "-----Updating glibc to 2.39-----"
-apt install -y wget tar make bison
-cd /tmp
-wget http://ftp.gnu.org/gnu/libc/glibc-2.39.tar.gz
-tar -xvzf glibc-2.39.tar.gz
-cd glibc-2.39
-mkdir build
-cd build
-../configure --prefix=/opt/glibc-2.39
-make -j$(nproc)
-make install
-
-# Add the new glibc to loader path
-echo "/opt/glibc-2.39/lib" > /etc/ld.so.conf.d/glibc-2.39.conf
-ldconfig
-
 echo "-----Downloading prover binaries-----"
-mkdir -p /app
+mkdir /app
 curl -L "https://zzno.de/boundless/agent" -o /app/agent
-curl -L "https://nishimiya.eu.org/boundless-2/broker" -o /app/broker
+curl -L "https://nishimiya.eu.org/boundless/broker" -o /app/broker
 curl -L "https://zzno.de/boundless/prover" -o /app/prover
 curl -L "https://zzno.de/boundless/rest_api" -o /app/rest_api
 curl -L "https://zzno.de/boundless/stark_verify" -o /app/stark_verify
@@ -193,7 +177,7 @@ strip_ansi=true
 programs=redis,postgres,minio,grafana
 
 [group:bento]
-programs=exec_agent0,exec_agent1,exec_agent2,exec_agent3,exec_agent4,exec_agent5,exec_agent6,exec_agent7,aux_agent,snark_agent,rest_api
+programs=exec_agent0,exec_agent1,exec_agent2,exec_agent3,aux_agent,snark_agent,rest_api
 
 [group:broker]
 programs=
@@ -292,54 +276,6 @@ startsecs=5
 stopwaitsecs=10
 priority=50
 stdout_logfile=/var/log/exec_agent3.log
-redirect_stderr=true
-environment=DATABASE_URL="postgresql://worker:password@localhost:5432/taskdb",REDIS_URL="redis://localhost:6379",S3_URL="http://localhost:9000",S3_BUCKET="workflow",S3_ACCESS_KEY="admin",S3_SECRET_KEY="password",RUST_LOG="info",RUST_BACKTRACE="1",RISC0_KECCAK_PO2="17"
-
-[program:exec_agent4]
-command=/app/agent -t exec --segment-po2 $MIN_SEGMENT_SIZE
-directory=/app
-autostart=true
-autorestart=true
-startsecs=5
-stopwaitsecs=10
-priority=50
-stdout_logfile=/var/log/exec_agent4.log
-redirect_stderr=true
-environment=DATABASE_URL="postgresql://worker:password@localhost:5432/taskdb",REDIS_URL="redis://localhost:6379",S3_URL="http://localhost:9000",S3_BUCKET="workflow",S3_ACCESS_KEY="admin",S3_SECRET_KEY="password",RUST_LOG="info",RUST_BACKTRACE="1",RISC0_KECCAK_PO2="17"
-
-[program:exec_agent5]
-command=/app/agent -t exec --segment-po2 $MIN_SEGMENT_SIZE
-directory=/app
-autostart=true
-autorestart=true
-startsecs=5
-stopwaitsecs=10
-priority=50
-stdout_logfile=/var/log/exec_agent5.log
-redirect_stderr=true
-environment=DATABASE_URL="postgresql://worker:password@localhost:5432/taskdb",REDIS_URL="redis://localhost:6379",S3_URL="http://localhost:9000",S3_BUCKET="workflow",S3_ACCESS_KEY="admin",S3_SECRET_KEY="password",RUST_LOG="info",RUST_BACKTRACE="1",RISC0_KECCAK_PO2="17"
-
-[program:exec_agent6]
-command=/app/agent -t exec --segment-po2 $MIN_SEGMENT_SIZE
-directory=/app
-autostart=true
-autorestart=true
-startsecs=5
-stopwaitsecs=10
-priority=50
-stdout_logfile=/var/log/exec_agent6.log
-redirect_stderr=true
-environment=DATABASE_URL="postgresql://worker:password@localhost:5432/taskdb",REDIS_URL="redis://localhost:6379",S3_URL="http://localhost:9000",S3_BUCKET="workflow",S3_ACCESS_KEY="admin",S3_SECRET_KEY="password",RUST_LOG="info",RUST_BACKTRACE="1",RISC0_KECCAK_PO2="17"
-
-[program:exec_agent7]
-command=/app/agent -t exec --segment-po2 $MIN_SEGMENT_SIZE
-directory=/app
-autostart=true
-autorestart=true
-startsecs=5
-stopwaitsecs=10
-priority=50
-stdout_logfile=/var/log/exec_agent7.log
 redirect_stderr=true
 environment=DATABASE_URL="postgresql://worker:password@localhost:5432/taskdb",REDIS_URL="redis://localhost:6379",S3_URL="http://localhost:9000",S3_BUCKET="workflow",S3_ACCESS_KEY="admin",S3_SECRET_KEY="password",RUST_LOG="info",RUST_BACKTRACE="1",RISC0_KECCAK_PO2="17"
 
