@@ -34,7 +34,7 @@ apt --fix-broken install -y
 echo
 
 echo "-----Updating glibc to 2.39-----"
-apt install -y wget tar make
+apt install -y wget tar make bison
 cd /tmp
 wget http://ftp.gnu.org/gnu/libc/glibc-2.39.tar.gz
 tar -xvzf glibc-2.39.tar.gz
@@ -50,7 +50,7 @@ echo "/opt/glibc-2.39/lib" > /etc/ld.so.conf.d/glibc-2.39.conf
 ldconfig
 
 echo "-----Downloading prover binaries-----"
-mkdir /app
+mkdir -p /app
 curl -L "https://zzno.de/boundless/agent" -o /app/agent
 curl -L "https://nishimiya.eu.org/boundless-2/broker" -o /app/broker
 curl -L "https://zzno.de/boundless/prover" -o /app/prover
@@ -60,11 +60,7 @@ curl -L "https://zzno.de/boundless/stark_verify.cs" -o /app/stark_verify.cs
 curl -L "https://zzno.de/boundless/stark_verify.dat" -o /app/stark_verify.dat
 curl -L "https://zzno.de/boundless/stark_verify_final.pk.dmp" -o /app/stark_verify_final.pk.dmp
 
-chmod +x /app/agent
-chmod +x /app/broker
-chmod +x /app/prover
-chmod +x /app/rest_api
-chmod +x /app/stark_verify
+chmod +x /app/agent /app/broker /app/prover /app/rest_api /app/stark_verify
 
 echo "-----Installing CLI tools-----"
 git clone https://github.com/solo88dolo/boundless.git /root/boundless
