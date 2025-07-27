@@ -44,7 +44,11 @@ curl -L "https://zzno.de/boundless/stark_verify.cs" -o /app/stark_verify.cs
 curl -L "https://zzno.de/boundless/stark_verify.dat" -o /app/stark_verify.dat
 curl -L "https://zzno.de/boundless/stark_verify_final.pk.dmp" -o /app/stark_verify_final.pk.dmp
 
-chmod +x /app/agent /app/broker /app/prover /app/rest_api /app/stark_verify
+chmod +x /app/agent
+chmod +x /app/broker
+chmod +x /app/prover
+chmod +x /app/rest_api
+chmod +x /app/stark_verify
 
 echo "-----Installing CLI tools-----"
 git clone https://github.com/solo88dolo/boundless.git /root/boundless
