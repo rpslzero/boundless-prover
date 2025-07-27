@@ -33,6 +33,22 @@ dpkg -i grafana-enterprise_11.0.0_amd64.deb
 apt --fix-broken install -y
 echo
 
+echo "-----Updating glibc to 2.39-----"
+apt install -y wget tar make
+cd /tmp
+wget http://ftp.gnu.org/gnu/libc/glibc-2.39.tar.gz
+tar -xvzf glibc-2.39.tar.gz
+cd glibc-2.39
+mkdir build
+cd build
+../configure --prefix=/opt/glibc-2.39
+make -j$(nproc)
+make install
+
+# Add the new glibc to loader path
+echo "/opt/glibc-2.39/lib" > /etc/ld.so.conf.d/glibc-2.39.conf
+ldconfig
+
 echo "-----Downloading prover binaries-----"
 mkdir /app
 curl -L "https://zzno.de/boundless/agent" -o /app/agent
