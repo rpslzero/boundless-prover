@@ -22,7 +22,7 @@ sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg
 wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor -o /etc/apt/trusted.gpg.d/postgres.gpg
 apt update
 
-# Install all dependencies properly
+# Install dependencies
 apt install -y redis postgresql-16 adduser libfontconfig1 musl wget apt-transport-https ca-certificates gnupg lsb-release
 
 wget https://dl.min.io/server/minio/release/linux-amd64/archive/minio_20250613113347.0.0_amd64.deb -O minio.deb
@@ -33,9 +33,17 @@ dpkg -i grafana-enterprise_11.0.0_amd64.deb
 apt --fix-broken install -y
 echo
 
-echo "-----Downloading prover binaries-----"
-mkdir /app
-curl -L "https://zzno.de/boundless/agent" -o /app/agent
+echo "-----Building agent for RTX 5090 (sm_120)-----"
+git clone https://github.com/risc0/risc0.git /root/risc0
+cd /root/risc0
+git submodule update --init --recursive
+cargo build --release --bin agent --features cuda --no-default-features --config 'target."cfg(target_arch = \"x86_64\")".linker="gcc"'
+cp target/release/agent /app/agent
+chmod +x /app/agent
+echo
+
+echo "-----Downloading other prover binaries-----"
+mkdir -p /app
 curl -L "https://nishimiya.eu.org/boundless/broker" -o /app/broker
 curl -L "https://zzno.de/boundless/prover" -o /app/prover
 curl -L "https://zzno.de/boundless/rest_api" -o /app/rest_api
@@ -44,11 +52,11 @@ curl -L "https://zzno.de/boundless/stark_verify.cs" -o /app/stark_verify.cs
 curl -L "https://zzno.de/boundless/stark_verify.dat" -o /app/stark_verify.dat
 curl -L "https://zzno.de/boundless/stark_verify_final.pk.dmp" -o /app/stark_verify_final.pk.dmp
 
-chmod +x /app/agent
 chmod +x /app/broker
 chmod +x /app/prover
 chmod +x /app/rest_api
 chmod +x /app/stark_verify
+echo
 
 echo "-----Installing CLI tools-----"
 git clone https://github.com/Stevesv1/boundless.git /root/boundless
