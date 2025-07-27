@@ -409,7 +409,11 @@ mkdir -p /data/minio
 echo
 
 echo "-----Starting dependencies services-----"
-supervisord -c /etc/supervisor/supervisord.conf
+if ! pgrep -x "supervisord" > /dev/null; then
+    supervisord -c /etc/supervisor/supervisord.conf
+else
+    echo "supervisord is already running, skipping start..."
+fi
 supervisorctl update
 supervisorctl start dependencies:*
 supervisorctl status
