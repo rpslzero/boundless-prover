@@ -166,7 +166,7 @@ stdout_logfile=/var/log/broker${NET_ID_TRIM}.log
 redirect_stderr=true
 environment=RUST_LOG=\"info,broker=debug,boundless_market=debug\",PRIVATE_KEY=\"${PRIVKEY}\",RPC_URL=\"${RPC_URL}\",POSTGRES_HOST=\"localhost\",POSTGRES_DB=\"taskdb\",POSTGRES_PORT=\"5432\",POSTGRES_USER=\"worker\",POSTGRES_PASS=\"password\"
 "
-    cp broker.toml /app/broker${NET_ID_TRIM}.toml
+    cp broker-template.toml /app/broker${NET_ID_TRIM}.toml
 done
 
 cat <<EOF >/etc/supervisor/conf.d/boundless.conf
