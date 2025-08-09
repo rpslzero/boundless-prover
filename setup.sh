@@ -17,7 +17,7 @@ while getopts "s" opt; do
 done
 
 apt update
-apt install -y curl nvtop git supervisor build-essential pkg-config libssl-dev python3-dev
+apt install -y curl nano sudo nvtop git supervisor build-essential pkg-config libssl-dev python3-dev
 echo
 
 echo "-----Installing rust-----"
