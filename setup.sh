@@ -54,7 +54,7 @@ echo "-----Installing CLI tools-----"
 git clone https://github.com/rpslzero/boundless.git /root/boundless
 cd /root/boundless
 git submodule update --init --recursive
-cargo install --git https://github.com/risc0/risc0 bento-client --bin bento_cli
+cargo install --git https://github.com/risc0/risc0 bento-client --branch release-2.3 --bin bento_cli --force
 cargo install --path crates/boundless-cli --locked boundless-cli
 echo
 
