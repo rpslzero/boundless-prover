@@ -1,23 +1,7 @@
 #!/bin/bash
 
-SILENT_MODE=false
-while getopts "s" opt; do
-    case $opt in
-        s)
-            SILENT_MODE=true
-            echo "Running in silent mode with default values..."
-            ;;
-        \?)
-            echo "Invalid option: -$OPTARG" >&2
-            echo "Usage: $0 [-s]"
-            echo "  -s: Silent mode (use default values without prompts)"
-            exit 1
-            ;;
-    esac
-done
-
 apt update
-apt install -y curl nano sudo nvtop git supervisor build-essential pkg-config libssl-dev python3-dev
+apt install -y curl sudo nano nvtop git supervisor build-essential pkg-config libssl-dev python3-dev sqlite3 libsqlite3-dev
 echo
 
 echo "-----Installing rust-----"
@@ -51,17 +35,7 @@ echo
 
 echo "-----Downloading prover binaries-----"
 mkdir /app
-
-IS_RTX_50=false
-if nvidia-smi --query-gpu="name" --format=csv,noheader | grep -q "NVIDIA GeForce RTX 50"; then
-    IS_RTX_50=true
-fi
-
-if $IS_RTX_50; then
-    curl -L "https://zzno.de/boundless/agent_50" -o /app/agent
-else
-    curl -L "https://nishimiya.eu.org/boundless/agent" -o /app/agent
-fi
+curl -L "https://nishimiya.eu.org/boundless/agent" -o /app/agent
 curl -L "https://nishimiya.eu.org/boundless/broker" -o /app/broker
 curl -L "https://nishimiya.eu.org/boundless/prover" -o /app/prover
 curl -L "https://nishimiya.eu.org/boundless/rest_api" -o /app/rest_api
@@ -80,7 +54,7 @@ echo "-----Installing CLI tools-----"
 git clone https://github.com/rpslzero/boundless.git /root/boundless
 cd /root/boundless
 git submodule update --init --recursive
-cargo install --git https://github.com/risc0/risc0 bento-client --branch release-2.3 --bin bento_cli
+cargo install --git https://github.com/risc0/risc0 bento-client --bin bento_cli
 cargo install --path crates/boundless-cli --locked boundless-cli
 echo
 
@@ -93,16 +67,8 @@ echo
 
 echo "-----Generating supervisord configuration file-----"
 nvidia-smi -L
-
-if [ "$SILENT_MODE" = true ]; then
-    GPU_IDS=$(nvidia-smi --query-gpu=index --format=csv,noheader | tr '\n' ',' | sed 's/,$//')
-    echo "Using all available GPUs: $GPU_IDS"
-else
-    read -p "Please input the GPU ID you need to run according to the printed GPU information (e.g. 0,1 default all): " GPU_IDS
-    if [ -z "$GPU_IDS" ]; then
-        GPU_IDS=$(nvidia-smi --query-gpu=index --format=csv,noheader | tr '\n' ',' | sed 's/,$//')
-    fi
-fi
+read -p "Please input the GPU ID you need to run according to the printed GPU information (e.g. 0,1 default 0): " GPU_IDS
+GPU_IDS=${GPU_IDS:-0}
 
 gpu_info=$(nvidia-smi --query-gpu=index,name,memory.total --format=csv,noheader)
 
@@ -141,46 +107,22 @@ NETWORK_ENVS_FILE["1"]="/app/.env.eth-sepolia"
 NETWORK_ENVS_FILE["2"]="/app/.env.base-sepolia"
 NETWORK_ENVS_FILE["3"]="/app/.env.base"
 
-if [ "$SILENT_MODE" = false ]; then
-    for id in $(for key in "${!NETWORK_NAMES[@]}"; do echo "$key"; done | sort -n); do
-        echo "$id) ${NETWORK_NAMES[$id]}"
-    done
-fi
+for id in $(for key in "${!NETWORK_NAMES[@]}"; do echo "$key"; done | sort -n); do
+    echo "$id) ${NETWORK_NAMES[$id]}"
+done
 
-if [ "$SILENT_MODE" = true ]; then
-    NETWORK_IDS="3"
-    echo "Using default network: $NETWORK_IDS (Base Mainnet)"
-else
-    read -p "Please input the network you need to run (e.g. 1,2,3 default 3): " NETWORK_IDS
-    NETWORK_IDS=${NETWORK_IDS:-3}
-fi
+read -p "Please input the network you need to run (e.g. 1,2 default 1,2): " NETWORK_IDS
+NETWORK_IDS=${NETWORK_IDS:-1,2}
 
 IFS=',' read -ra NET_IDS <<< "$NETWORK_IDS"
 declare -A NETWORK_RPC
 declare -A NETWORK_PRIVKEY
 
-declare -A DEFAULT_RPC
-DEFAULT_RPC["1"]="https://eth-sepolia.g.alchemy.com/v2/YOUR_API_KEY"
-DEFAULT_RPC["2"]="https://base-sepolia.g.alchemy.com/v2/YOUR_API_KEY"
-DEFAULT_RPC["3"]="https://base-mainnet.g.alchemy.com/v2/YOUR_API_KEY"
-
-DEFAULT_PRIVKEY="0x0000000000000000000000000000000000000000000000000000000000000000"
-
 for NET_ID in "${NET_IDS[@]}"; do
     NET_ID_TRIM=$(echo "$NET_ID" | xargs)
     NETWORK_NAME="${NETWORK_NAMES[$NET_ID_TRIM]}"
-    
-    if [ "$SILENT_MODE" = true ]; then
-        rpc="${DEFAULT_RPC[$NET_ID_TRIM]}"
-        privkey="$DEFAULT_PRIVKEY"
-        echo "Using default RPC for ${NETWORK_NAME}: $rpc"
-        echo "Using default private key for ${NETWORK_NAME}: $privkey"
-        echo "WARNING: Please update RPC URL and private key in the configuration files before starting services!"
-    else
-        read -p "Please input the RPC URL of ${NETWORK_NAME}: " rpc
-        read -p "Please input the private key of ${NETWORK_NAME}: " privkey
-    fi
-    
+    read -p "Please input the RPC address of ${NETWORK_NAME}: " rpc
+    read -p "Please input the private key of ${NETWORK_NAME}: " privkey
     NETWORK_RPC["$NET_ID_TRIM"]="$rpc"
     NETWORK_PRIVKEY["$NET_ID_TRIM"]="$privkey"
 done
@@ -239,7 +181,7 @@ strip_ansi=true
 programs=redis,postgres,minio,grafana
 
 [group:bento]
-programs=exec_agent0,exec_agent1,exec_agent2,exec_agent3,aux_agent,snark_agent,rest_api
+programs=exec_agent0,exec_agent1,exec_agent2,aux_agent,snark_agent,rest_api
 
 [group:broker]
 programs=
@@ -329,18 +271,6 @@ stdout_logfile=/var/log/exec_agent2.log
 redirect_stderr=true
 environment=DATABASE_URL="postgresql://worker:password@localhost:5432/taskdb",REDIS_URL="redis://localhost:6379",S3_URL="http://localhost:9000",S3_BUCKET="workflow",S3_ACCESS_KEY="admin",S3_SECRET_KEY="password",RUST_LOG="info",RUST_BACKTRACE="1",RISC0_KECCAK_PO2="17"
 
-[program:exec_agent3]
-command=/app/agent -t exec --segment-po2 $MIN_SEGMENT_SIZE
-directory=/app
-autostart=true
-autorestart=true
-startsecs=5
-stopwaitsecs=10
-priority=50
-stdout_logfile=/var/log/exec_agent3.log
-redirect_stderr=true
-environment=DATABASE_URL="postgresql://worker:password@localhost:5432/taskdb",REDIS_URL="redis://localhost:6379",S3_URL="http://localhost:9000",S3_BUCKET="workflow",S3_ACCESS_KEY="admin",S3_SECRET_KEY="password",RUST_LOG="info",RUST_BACKTRACE="1",RISC0_KECCAK_PO2="17"
-
 [program:aux_agent]
 command=/app/agent -t aux --monitor-requeue
 directory=/app
@@ -414,7 +344,7 @@ supervisorctl status
 echo
 
 echo "-----Initializing database-----"
-curl -L "https://raw.githubusercontent.com/walirt/boundless-prover/refs/heads/main/initdb.sh" -o initdb.sh
+curl -L "https://raw.githubusercontent.com/rpslzero/boundless-prover/refs/heads/main/initdb.sh" -o initdb.sh
 chmod +x initdb.sh
 ./initdb.sh
 mkdir /db
@@ -435,25 +365,6 @@ echo "Prover main directory: /app"
 echo "Log directory: /var/log"
 echo "Broker configuration file path: /app/broker*.toml"
 echo "Supervisord configuration file path: /etc/supervisor/conf.d/boundless.conf"
-
-if [ "$SILENT_MODE" = true ]; then
-    echo
-    echo "=========================================="
-    echo "WARNING: Silent mode was used!"
-    echo "=========================================="
-    echo "Default values were used for:"
-    echo "- GPU ID: All available GPUs"
-    echo "- Network: 3 (Base Mainnet)"
-    echo "- RPC URLs: Placeholder URLs (need to be updated)"
-    echo "- Private Keys: Placeholder key (need to be updated)"
-    echo
-    echo "IMPORTANT: Before starting services, please update:"
-    echo "1. RPC URLs in the environment variables"
-    echo "2. Private keys in the environment variables"
-    echo "3. Review /etc/supervisor/conf.d/boundless.conf"
-    echo "=========================================="
-fi
-
 echo
 echo "Basic commands: "
 echo "-----Running a Test Proof-----"
