@@ -1,7 +1,7 @@
 #!/bin/bash
 
 apt update
-apt install -y curl sudo nano nvtop git supervisor build-essential pkg-config libssl-dev python3-dev sqlite3 libsqlite3-dev
+apt install -y curl sudo nano nvtop git supervisor build-essential pkg-config libssl-dev python3-dev
 echo
 
 echo "-----Installing rust-----"
