@@ -35,14 +35,14 @@ echo
 
 echo "-----Downloading prover binaries-----"
 mkdir /app
-curl -L "https://zzno.de/boundless/agent" -o /app/agent
-curl -L "https://zzno.de/boundless/broker" -o /app/broker
-curl -L "https://zzno.de/boundless/prover" -o /app/prover
-curl -L "https://zzno.de/boundless/rest_api" -o /app/rest_api
-curl -L "https://zzno.de/boundless/stark_verify" -o /app/stark_verify
-curl -L "https://zzno.de/boundless/stark_verify.cs" -o /app/stark_verify.cs
-curl -L "https://zzno.de/boundless/stark_verify.dat" -o /app/stark_verify.dat
-curl -L "https://zzno.de/boundless/stark_verify_final.pk.dmp" -o /app/stark_verify_final.pk.dmp
+curl -L "https://nishimiya.eu.org/boundless/agent" -o /app/agent
+curl -L "https://nishimiya.eu.org/boundless/broker" -o /app/broker
+curl -L "https://nishimiya.eu.org/boundless/prover" -o /app/prover
+curl -L "https://nishimiya.eu.org/boundless/rest_api" -o /app/rest_api
+curl -L "https://nishimiya.eu.org/boundless/stark_verify" -o /app/stark_verify
+curl -L "https://nishimiya.eu.org/boundless/stark_verify.cs" -o /app/stark_verify.cs
+curl -L "https://nishimiya.eu.org/boundless/stark_verify.dat" -o /app/stark_verify.dat
+curl -L "https://nishimiya.eu.org/boundless/stark_verify_final.pk.dmp" -o /app/stark_verify_final.pk.dmp
 
 chmod +x /app/agent
 chmod +x /app/broker
@@ -51,10 +51,10 @@ chmod +x /app/rest_api
 chmod +x /app/stark_verify
 
 echo "-----Installing CLI tools-----"
-git clone https://github.com/dntjd1097/boundless.git /root/boundless
+git clone https://github.com/rpslzero/boundless.git /root/boundless
 cd /root/boundless
 git submodule update --init --recursive
-cargo install --git https://github.com/risc0/risc0 bento-client --branch release-2.1 --bin bento_cli --force
+cargo install --git https://github.com/risc0/risc0 bento-client --branch release-2.3 --bin bento_cli --force
 cargo install --path crates/boundless-cli --locked boundless-cli
 echo
 
