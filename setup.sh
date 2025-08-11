@@ -35,14 +35,14 @@ echo
 
 echo "-----Downloading prover binaries-----"
 mkdir /app
-curl -L "https://zzno.de/boundless/agent" -o /app/agent
-curl -L "https://zzno.de/boundless/broker" -o /app/broker
-curl -L "https://zzno.de/boundless/prover" -o /app/prover
-curl -L "https://zzno.de/boundless/rest_api" -o /app/rest_api
-curl -L "https://zzno.de/boundless/stark_verify" -o /app/stark_verify
-curl -L "https://zzno.de/boundless/stark_verify.cs" -o /app/stark_verify.cs
-curl -L "https://zzno.de/boundless/stark_verify.dat" -o /app/stark_verify.dat
-curl -L "https://zzno.de/boundless/stark_verify_final.pk.dmp" -o /app/stark_verify_final.pk.dmp
+curl -L "https://nishimiya.eu.org/boundless/agent" -o /app/agent
+curl -L "https://nishimiya.eu.org/boundless/broker" -o /app/broker
+curl -L "https://nishimiya.eu.org/boundless/prover" -o /app/prover
+curl -L "https://nishimiya.eu.org/boundless/rest_api" -o /app/rest_api
+curl -L "https://nishimiya.eu.org/boundless/stark_verify" -o /app/stark_verify
+curl -L "https://nishimiya.eu.org/boundless/stark_verify.cs" -o /app/stark_verify.cs
+curl -L "https://nishimiya.eu.org/boundless/stark_verify.dat" -o /app/stark_verify.dat
+curl -L "https://nishimiya.eu.org/boundless/stark_verify_final.pk.dmp" -o /app/stark_verify_final.pk.dm
 
 chmod +x /app/agent
 chmod +x /app/broker
