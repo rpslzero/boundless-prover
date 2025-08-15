@@ -51,7 +51,7 @@ chmod +x /app/rest_api
 chmod +x /app/stark_verify
 
 echo "-----Installing CLI tools-----"
-git clone https://github.com/rpslzero/boundless.git /root/boundless
+git clone --branch nodework https://github.com/wise1ight/boundless.git /root/boundless
 cd /root/boundless
 git submodule update --init --recursive
 cargo install --git https://github.com/risc0/risc0 bento-client --branch release-2.3 --bin bento_cli --force
@@ -166,7 +166,7 @@ stdout_logfile=/var/log/broker${NET_ID_TRIM}.log
 redirect_stderr=true
 environment=RUST_LOG=\"info,broker=debug,boundless_market=debug\",PRIVATE_KEY=\"${PRIVKEY}\",RPC_URL=\"${RPC_URL}\",POSTGRES_HOST=\"localhost\",POSTGRES_DB=\"taskdb\",POSTGRES_PORT=\"5432\",POSTGRES_USER=\"worker\",POSTGRES_PASS=\"password\"
 "
-    cp broker.toml /app/broker${NET_ID_TRIM}.toml
+    cp broker-template.toml /app/broker${NET_ID_TRIM}.toml
 done
 
 cat <<EOF >/etc/supervisor/conf.d/boundless.conf
