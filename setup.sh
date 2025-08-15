@@ -51,7 +51,7 @@ chmod +x /app/rest_api
 chmod +x /app/stark_verify
 
 echo "-----Installing CLI tools-----"
-git clone https://github.com/boundless-xyz/boundless.git
+git clone https://github.com/boundless-xyz/boundless.git /root/boundless
 cd /root/boundless
 git checkout release-0.13
 git submodule update --init --recursive
